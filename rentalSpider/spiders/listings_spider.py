@@ -7,9 +7,9 @@ class listingSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = [
-            'https://vancouver.craigslist.ca/d/apts-housing-for-rent/search/apa',
-            'https://vancouver.craigslist.ca/d/sublets-temporary/search/sub',
-            'https://vancouver.craigslist.ca/d/rooms-shares/search/roo'
+            'https://vancouver.craigslist.ca/d/apts-housing-for-rent/search/apa'#,
+            #'https://vancouver.craigslist.ca/d/sublets-temporary/search/sub',
+            #'https://vancouver.craigslist.ca/d/rooms-shares/search/roo'
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse_link_page)
@@ -40,7 +40,7 @@ class listingSpider(scrapy.Spider):
             'url': response.url,
             'posted': extract_with_css("div.postinginfos p.postinginfo time::attr(datetime)",0),
             'updated': extract_with_css("div.postinginfos p.postinginfo time::attr(datetime)",1),
-            'user data': extract_with_css("section.postingbody::text"),
+            'user data': extract_with_css("#postingbody::text"),
             'latitude': extract_with_css("div.mapbox #map::attr(data-latitude)"),
             'longitude': extract_with_css("div.mapbox #map::attr(data-longitude)"),
             'accuracy': extract_with_css("div.mapbox #map::attr(data-accuracy)"),

@@ -32,4 +32,4 @@ k = Key(bucket)
 k.key = 'Data/logs/' + testfile
 k.set_contents_from_filename(testfile)
 
-os.remove(testfile)
+os.rename(testfile, "../logs/"+testfile)
