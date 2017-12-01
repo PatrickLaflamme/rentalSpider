@@ -1,30 +1,42 @@
 import scrapy
 import time
 import json
+import subprocess
+from rentalSpider.change_ip import change_ip
 
 class listingSpider(scrapy.Spider):
     name = "rentals"
 
     def start_requests(self):
         urls = [
-            'https://vancouver.craigslist.ca/d/apts-housing-for-rent/search/apa'#,
-            #'https://vancouver.craigslist.ca/d/sublets-temporary/search/sub',
-            #'https://vancouver.craigslist.ca/d/rooms-shares/search/roo'
+            'https://vancouver.craigslist.ca/d/apts-housing-for-rent/search/apa',
+            'https://vancouver.craigslist.ca/d/sublets-temporary/search/sub',
+            'https://vancouver.craigslist.ca/d/rooms-shares/search/roo'
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse_link_page)
 
     def parse_link_page(self, response):
+
+        if response.status == 403:
+            change_ip()
+            yield scrapy.Request(response.url, callback=self.parse_link_page)
+
         for ad in response.css("div.content li.result-row"):
             link = ad.css("a::attr(href)").extract_first()
             yield response.follow(link, callback=self.parse_rental_page)
 
-        next_page = response.css("div.paginator a.next::attr(href)").extract_first()
+        next_page = response.css("a.button.next::attr(href)").extract_first()
         if next_page is not None:
             next_page = response.urljoin(next_page)
             yield scrapy.Request(next_page, callback=self.parse_link_page)
 
     def parse_rental_page(self, response):
+
+        if response.status == 403:
+            change_ip()
+            yield scrapy.Request(response.url, callback=self.parse_rental_page)
+        
         def extract_with_css(query, i=0, all=False):
             extracted_data = response.css(query).extract()
             if len(extracted_data)>0 and len(extracted_data)>=(i+1) and not all:
@@ -40,7 +52,7 @@ class listingSpider(scrapy.Spider):
             'url': response.url,
             'posted': extract_with_css("div.postinginfos p.postinginfo time::attr(datetime)",0),
             'updated': extract_with_css("div.postinginfos p.postinginfo time::attr(datetime)",1),
-            'user data': extract_with_css("#postingbody::text"),
+            'user data': extract_with_css("#postingbody::text", all=True),
             'latitude': extract_with_css("div.mapbox #map::attr(data-latitude)"),
             'longitude': extract_with_css("div.mapbox #map::attr(data-longitude)"),
             'accuracy': extract_with_css("div.mapbox #map::attr(data-accuracy)"),
