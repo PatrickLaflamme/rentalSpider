@@ -2,8 +2,11 @@ import os
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import boto
+import time
 
 os.chdir("rentalSpider")
+
+testfile = time.strftime("%Y-%m-%d") + ".log"
 
 process = CrawlerProcess(get_project_settings())
 
@@ -13,7 +16,6 @@ process.start() # the script will block here until the crawling is finished
 
 import boto
 import boto.s3
-import time
 from boto.s3.key import Key
 
 AWS_ACCESS_KEY_ID = "AKIAJNTWU2B6PICHAC5A"
@@ -25,8 +27,6 @@ conn = boto.connect_s3(AWS_ACCESS_KEY_ID,
 
 
 bucket = conn.get_bucket(bucket_name)
-
-testfile = time.strftime("%Y-%m-%d") + ".log"
 
 k = Key(bucket)
 k.key = 'Data/logs/' + testfile
